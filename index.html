@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>노마드빈 UB — 울란바토르 카페 시장 구조 분석 및 양면 구독 전략</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        taiga: '#132A22',
+        taigaLight: '#1D3E33',
+        taigaDeep: '#0D1E18',
+        alabaster: '#F6F8F7',
+        sageBorder: '#DCE3DF',
+        sageTint: '#EBF1EE',
+        pineInk: '#11221C',
+        pineMuted: '#4E635B',
+        sageLeaf: '#2E6F56',
+        seabuckthorn: '#D95D39',
+        steppeGold: '#C9933B',
+        sageText: '#B4CEC3'
+      },
+      fontFamily: {
+        serif: ['"Noto Serif KR"', 'Georgia', 'serif'],
+        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
+      }
+    }
+  }
+}
+</script>
+<style>
+body{background:#F6F8F7;color:#11221C;font-family:'Pretendard',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.font-editorial{font-family:'Noto Serif KR',serif;letter-spacing:-0.01em}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#EBF1EE}
+::-webkit-scrollbar-thumb{background:#9FB5AB;border-radius:9999px}
+input[type="range"]{-webkit-appearance:none;width:100%;height:6px;background:linear-gradient(90deg,#D95D39 var(--p,50%),#DCE3DF var(--p,50%));border-radius:999px;outline:none}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#D95D39;cursor:pointer;border:3px solid #FFFFFF;box-shadow:0 2px 8px rgba(19,42,34,.35)}
+input[type="range"]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#D95D39;cursor:pointer;border:3px solid #FFFFFF}
+.subpage-view{display:none}
+.subpage-view.active-subpage{display:block;animation:pageFade .35s ease-out}
+@keyframes pageFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card{background:#FFFFFF;border:1px solid #DCE3DF;border-radius:20px;box-shadow:0 1px 2px rgba(19,42,34,.04),0 8px 24px -12px rgba(19,42,34,.12);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.card-hover:hover{transform:translateY(-3px);box-shadow:0 2px 4px rgba(19,42,34,.05),0 18px 36px -14px rgba(19,42,34,.22);border-color:#C9D6CF}
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#D95D39}
+.kicker::before{content:'';width:22px;height:2px;background:#D95D39;display:inline-block}
+.page-title{font-family:'Noto Serif KR',serif;font-weight:900;line-height:1.22;letter-spacing:-0.02em}
+.lede{border-left:3px solid #C9933B;padding-left:16px}
+.stat-num{font-family:'Noto Serif KR',serif;font-weight:900;letter-spacing:-0.02em;line-height:1}
+.section-label{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#2E6F56}
+.side-page-btn{position:relative;display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 10px;border-radius:12px;color:#B4CEC3;transition:all .18s ease}
+.side-page-btn:hover{background:rgba(29,62,51,.6);color:#FFFFFF}
+.side-page-btn .num{flex-shrink:0;width:30px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;background:rgba(29,62,51,.9);color:#B4CEC3;border:1px solid rgba(46,111,86,.5)}
+.side-page-btn.active{background:#1D3E33;color:#FFFFFF;font-weight:700;box-shadow:inset 3px 0 0 #D95D39}
+.side-page-btn.active .num{background:#D95D39;color:#FFFFFF;border-color:#D95D39}
+.side-page-btn.visited .num{border-color:#C9933B;color:#C9933B}
+.side-page-btn.active.visited .num{color:#FFFFFF}
+table.ed th{font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+table.ed tbody tr{transition:background .15s}
+table.ed tbody tr:hover{background:#F6F8F7}
+.grain{background-image:radial-gradient(circle at 18% 12%,rgba(217,93,57,.18),transparent 42%),radial-gradient(circle at 92% 88%,rgba(201,147,59,.16),transparent 40%)}
+.leaflet-container{background:#E6EFEA!important;font-family:'Pretendard',sans-serif!important}
+.leaflet-container a{color:#132A22!important}
+.custom-cafe-marker{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9999px;color:#FFFFFF;font-weight:800;font-size:13px;border:2.5px solid #FFFFFF;box-shadow:0 4px 12px rgba(19,42,34,.38);transition:transform .15s ease}
+.custom-cafe-marker:hover{transform:scale(1.16)}
+.leaflet-popup-content-wrapper{background:#FFFFFF;color:#11221C;border:1px solid #DCE3DF;border-radius:14px;box-shadow:0 10px 25px rgba(19,42,34,.16)}
+.leaflet-popup-tip{background:#FFFFFF}
+.chip{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px}
+</style>
+</head>
+<body class="selection:bg-seabuckthorn/20 selection:text-pineInk">
+
+<header class="lg:hidden sticky top-0 z-40 bg-taiga text-white px-4 py-3 flex items-center justify-between border-b border-taigaLight">
+  <div>
+    <span class="text-[10px] uppercase tracking-[0.2em] text-seabuckthorn font-bold block">Nomad Bean · Ulaanbaatar</span>
+    <span class="font-editorial font-bold text-base">노마드빈 UB 전략 분석</span>
+  </div>
+  <button id="mobileMenuBtn" class="px-3 py-2 rounded-xl bg-taigaLight text-white border border-sageLeaf text-sm font-semibold">☰ 목차</button>
+</header>
+<div id="mobileOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+<div class="flex min-h-screen">
+  <aside id="sidebar" class="fixed lg:sticky top-0 left-0 z-50 h-screen w-[280px] shrink-0 bg-taiga text-sageText flex flex-col border-r border-taigaLight transform -translate-x-full lg:translate-x-0 transition-transform duration-200">
+    <div class="px-5 pt-6 pb-5 border-b border-taigaLight grain">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-seabuckthorn flex items-center justify-center font-editorial font-black text-white text-lg shadow-lg">N</div>
+        <div>
+          <span class="text-[10px] font-bold tracking-[0.2em] uppercase text-seabuckthorn block">Nomad Bean · UB</span>
+          <span class="font-editorial text-[15px] font-bold text-white leading-tight block">카페 시장 구조 분석</span>
+        </div>
+      </div>
+      <p class="text-[11px] text-sageText/85 mt-4 leading-relaxed">
+        청주대학교 경영학과 「인공지능과경영」<br>
+        발표자 <strong class="text-white">온다르마 (Batmonh Undarmaa)</strong>
+      </p>
+    </div>
+    <nav id="sidebarNav" class="flex-1 overflow-y-auto px-3 py-4 space-y-5 text-[12.5px]"></nav>
+    <div class="px-5 py-4 bg-taigaDeep border-t border-taigaLight">
+      <div class="flex items-center justify-between text-[11px] mb-2">
+        <span class="font-bold text-white">열람 진행률</span>
+        <span id="sideProgressText" class="text-steppeGold font-bold">1 / 11</span>
+      </div>
+      <div class="h-1.5 rounded-full bg-taigaLight overflow-hidden">
+        <div id="sideProgressBar" class="h-full bg-gradient-to-r from-seabuckthorn to-steppeGold rounded-full transition-all duration-300" style="width:9%"></div>
+      </div>
+      <p class="text-[10px] text-sageText/70 mt-3">← → 방향키로 페이지를 넘길 수 있습니다.</p>
+    </div>
+  </aside>
+
+  <main class="flex-1 min-w-0 flex flex-col">
+    <div class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-sageBorder">
+      <div class="max-w-6xl mx-auto px-5 lg:px-10 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="min-w-0">
+          <span id="topChapterBadge" class="text-[11px] font-bold uppercase tracking-[0.16em] text-seabuckthorn">Chapter 0</span>
+          <div id="topPageTitle" class="font-editorial font-bold text-pineInk text-sm truncate mt-0.5">연구 출처 및 양면 문제 정의</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div id="topSubTabsContainer" class="flex flex-wrap gap-1.5"></div>
+          <div class="hidden sm:flex items-center gap-1 pl-2 border-l border-sageBorder">
+            <button onclick="stepPage(-1)" class="w-8 h-8 rounded-lg bg-sageTint hover:bg-sageBorder text-pineInk font-bold transition" aria-label="이전">‹</button>
+            <button onclick="stepPage(1)" class="w-8 h-8 rounded-lg bg-taiga hover:bg-sageLeaf text-white font-bold transition" aria-label="다음">›</button>
+          </div>
+        </div>
+      </div>
+      <div class="h-[3px] bg-sageTint"><div id="topProgressBar" class="h-full bg-seabuckthorn transition-all duration-300" style="width:9%"></div></div>
+    </div>
+
+    <div class="max-w-6xl w-full mx-auto px-5 lg:px-10 py-10 flex-1">
+
+      <section id="page-0-1" class="subpage-view active-subpage space-y-8">
+        <div class="rounded-3xl bg-taiga text-white p-7 sm:p-10 grain relative overflow-hidden">
+          <span class="kicker">Page 0-1 · Research Origin</span>
+          <h2 class="page-title text-3xl sm:text-[40px] mt-4 max-w-4xl">
+            이 연구는 어디서 시작되었는가?<br>
+            울란바토르 대학생과 카페 사장님의 <span class="text-seabuckthorn">4대 구조적 갈등</span>
+          </h2>
+          <p class="text-sm text-sageText mt-5 max-w-3xl leading-relaxed">
+            몽골 울란바토르 3대 핵심 상권(몽골국립대 대학가 МУИС · 수흐바타르 광장 · 자이승)의 실제 카페 이용 환경 관찰을 바탕으로, 시간대별 POS 매출 로그·기온 데이터(정제 84건), 고객 리뷰(60건), 동시구매 네트워크(30쌍) 시뮬레이션 데이터를 결합해 도출했습니다.
+          </p>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">
+            <div class="rounded-2xl bg-white/5 border border-white/10 p-4"><div class="stat-num text-2xl sm:text-3xl text-white">10,000</div><div class="text-[11px] text-sageText mt-2">MNT · 커피 1잔 평균가</div></div>
+            <div class="rounded-2xl bg-white/5 border border-white/10 p-4"><div class="stat-num text-2xl sm:text-3xl text-seabuckthorn">344,000</div><div class="text-[11px] text-sageText mt-2">MNT · 학생 월 지출</div></div>
+            <div class="rounded-2xl bg-white/5 border border-white/10 p-4"><div class="stat-num text-2xl sm:text-3xl text-steppeGold">120,000</div><div class="text-[11px] text-sageText mt-2">MNT · 노마드 패스 월 구독</div></div>
+            <div class="rounded-2xl bg-white/5 border border-white/10 p-4"><div class="stat-num text-2xl sm:text-3xl text-white">70%</div><div class="text-[11px] text-sageText mt-2">14~17시 공석 비율</div></div>
+          </div>
+        </div>
+
+        <div class="card p-6 flex flex-col md:flex-row gap-5">
+          <div class="shrink-0 w-12 h-12 rounded-2xl bg-sageTint flex items-center justify-center text-xl">📌</div>
+          <div class="space-y-2">
+            <span class="section-label">데이터 출처 및 현지 시세 반영 근거 · Data Provenance</span>
+            <p class="text-sm text-pineInk leading-relaxed"><strong>① 현지 시장 시세 및 지리 인프라:</strong> 울란바토르 실존 카페 6곳의 위치·운영시간(08:00~23:00)·피크타임·Wi-Fi 및 콘센트 실태와 현지 평균 음료 단가(<strong>10,000 MNT</strong>) 반영</p>
+            <p class="text-sm text-pineInk leading-relaxed"><strong>② 정량 검증 데이터(3종):</strong> 개별 매장의 영업비밀 보호를 위해 실제 겨울 기온(−12°C~−34°C)과 MNT 단가를 반영한 <strong>정제 거래 84건 · 리뷰 60건 · 동시구매 30쌍</strong> 모델 구축</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="chip bg-seabuckthorn/15 text-seabuckthorn">수요자 관점 · 대학생</span>
+              <span class="text-xs text-pineMuted font-semibold">주 8회 카페 공부 학생</span>
+            </div>
+            <div class="card card-hover p-6">
+              <div class="flex items-start gap-4">
+                <span class="stat-num text-4xl text-seabuckthorn/30">01</span>
+                <div>
+                  <h3 class="font-editorial text-base font-bold text-pineInk">매일 반복되는 고가 음료 지출 (월 344,000 MNT 부담)</h3>
+                  <p class="text-[13px] text-pineMuted leading-relaxed mt-2">긴 겨울(−25°C ~ −35°C) 동안 도서관 외에 따뜻하게 공부할 공간이 부족해 주 평균 8회 카페를 방문합니다. 1잔당 평균 <strong>10,000 MNT</strong> 기준 주당 <strong>80,000 MNT</strong>, 월(4.3주) 약 <strong>344,000 MNT</strong>의 과도한 고정비가 발생합니다.</p>
+                </div>
+              </div>
+            </div>
+            <div class="card card-hover p-6">
+              <div class="flex items-start gap-4">
+                <span class="stat-num text-4xl text-seabuckthorn/30">02</span>
+                <div>
+                  <h3 class="font-editorial text-base font-bold text-pineInk">다중 접속 시 저속·혼잡 Wi-Fi 및 콘센트 부족</h3>
+                  <p class="text-[13px] text-pineMuted leading-relaxed mt-2">동시 접속자가 몰리면 <strong>인터넷 속도가 느리고 영상 강의·과제 업로드 시 자주 버벅임/끊김 현상(R040)</strong>이 발생하며, 노트북 충전용 콘센트가 부족해(R053) 학업 집중력이 저하됩니다.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="chip bg-sageLeaf/15 text-sageLeaf">공급자 관점 · 카페 사장님</span>
+              <span class="text-xs text-pineMuted font-semibold">운영시간 08:00~23:00</span>
+            </div>
+            <div class="card card-hover p-6">
+              <div class="flex items-start gap-4">
+                <span class="stat-num text-4xl text-sageLeaf/30">03</span>
+                <div>
+                  <h3 class="font-editorial text-base font-bold text-pineInk">오후 비피크(14:00~17:00) 좌석 70% 공석 손실</h3>
+                  <p class="text-[13px] text-pineMuted leading-relaxed mt-2"><strong>점심(12:00~14:00)과 퇴근(17:30~19:30)</strong> 피크타임에는 자리가 없는 반면, <strong>오후 14:00~17:00에는 좌석의 약 70%가 비어 있어</strong> 임대료·난방비 대비 매출 효율이 급락합니다.</p>
+                </div>
+              </div>
+            </div>
+            <div class="card card-hover p-6">
+              <div class="flex items-start gap-4">
+                <span class="stat-num text-4xl text-sageLeaf/30">04</span>
+                <div>
+                  <h3 class="font-editorial text-base font-bold text-pineInk">저단가 장기 점유(카공족 병목) 및 동절기 냉음료 부진</h3>
+                  <p class="text-[13px] text-pineMuted leading-relaxed mt-2">학생 고객이 10,000 MNT 음료 1잔만 주문하고 4~5시간 이상 좌석을 점유하면서 피크타임 신규 고객 회전을 막고, 겨울철 냉음료가 팔리지 않아 재고·메뉴 비효율이 누적됩니다.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-0-2" class="subpage-view space-y-8">
+        <header class="space-y-4">
+          <span class="kicker">Page 0-2 · Answer First</span>
+          <h2 class="page-title text-3xl sm:text-[38px] text-pineInk">핵심 결론: <span class="text-seabuckthorn">월 120,000 MNT 비피크 구독 패스</span>로<br class="hidden sm:inline">학생은 월 224,000 MNT를 절약하고, 카페는 오후 공석 70%를 수익화한다</h2>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="card card-hover p-6 border-t-4 border-t-sageLeaf">
+            <span class="section-label">결론 01 · 혹한기 역발상 수요</span>
+            <div class="stat-num text-4xl text-pineInk mt-4">+56.3%</div>
+            <div class="text-xs text-pineMuted mt-1">객단가 급증</div>
+            <p class="text-[13px] text-pineMuted mt-4 leading-relaxed">−25°C 이하 혹한기 평균 체류시간이 <strong>65.0분 → 90.3분</strong>으로 늘면서 객단가가 <strong>17,270 → 26,993 MNT</strong>로 상승하고 <strong>차차르간 차+베이커리 비중이 52.74%</strong>를 기록합니다.</p>
+          </div>
+          <div class="card card-hover p-6 border-t-4 border-t-steppeGold">
+            <span class="section-label" style="color:#8F631E">결론 02 · 5단계 시간대 &amp; 야간 스위치</span>
+            <div class="stat-num text-4xl text-pineInk mt-4">14~17시</div>
+            <div class="text-xs text-pineMuted mt-1">비피크 집중</div>
+            <p class="text-[13px] text-pineMuted mt-4 leading-relaxed">24시간 운영 대신 <strong>08:00~23:00 5단계 시간 분할</strong>과 <strong>시험기간 3개 카페 순환 02:00 연장</strong>으로 인건비 부담 없이 학생·사장님 모두의 니즈를 충족합니다.</p>
+          </div>
+          <div class="card card-hover p-6 border-t-4 border-t-seabuckthorn">
+            <span class="section-label" style="color:#D95D39">결론 03 · 전용 Wi-Fi &amp; 신뢰</span>
+            <div class="stat-num text-4xl text-seabuckthorn mt-4">224,000</div>
+            <div class="text-xs text-pineMuted mt-1">MNT / 월 절약</div>
+            <p class="text-[13px] text-pineMuted mt-4 leading-relaxed">패스 구독자 전용 <strong>120Mbps+ 대역폭 분리 Wi-Fi</strong>로 속도 저하·버벅임(R040)을 해결하고, <strong>3초 즉시 해지(R021)</strong>로 구독 신뢰를 확보합니다.</p>
+          </div>
+        </div>
+
+        <div class="card overflow-hidden">
+          <div class="px-6 py-5 bg-taiga text-white flex flex-wrap items-center justify-between gap-2">
+            <h3 class="font-editorial text-lg font-bold">Before vs After — 양면 가치 비교표</h3>
+            <span class="chip bg-seabuckthorn text-white">1잔 = 10,000 MNT 기준</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="ed w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="bg-sageTint text-pineInk border-b border-sageBorder">
+                  <th class="py-3.5 px-5 font-bold w-36">참여 주체</th>
+                  <th class="py-3.5 px-5 font-bold text-seabuckthorn">도입 전 · Before</th>
+                  <th class="py-3.5 px-5 font-bold text-sageLeaf">도입 후 · Nomad Pass</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-sageBorder">
+                <tr>
+                  <td class="py-5 px-5 align-top"><div class="text-2xl">🎓</div><div class="font-editorial font-bold mt-1">대학생</div><div class="text-[11px] text-pineMuted">Student</div></td>
+                  <td class="py-5 px-5 align-top text-pineMuted space-y-2 text-[13px]">
+                    <p>주 8회 방문 시 주당 <strong class="text-pineInk">80,000 MNT</strong>, 월 약 <strong class="text-pineInk">344,000 MNT</strong> 지출 부담</p>
+                    <p>오래 앉아 있으면 눈치가 보이고, 동시 접속 시 <strong class="text-pineInk">Wi-Fi 속도가 느리고 버벅임</strong></p>
+                    <p>시험기간 밤늦게 따뜻하게 공부할 심야 공간 부족</p>
+                  </td>
+                  <td class="py-5 px-5 align-top bg-sageTint/40 space-y-2 text-[13px]">
+                    <p>✓ 월 <strong>120,000 MNT</strong> 정액 구독으로 매월 <strong class="text-sageLeaf">224,000+ MNT 순절약</strong></p>
+                    <p>✓ 전용 <strong>120Mbps+ 고속 Wi-Fi 서브채널</strong> &amp; 인증 콘센트 좌석 보장</p>
+                    <p>✓ 시험기간 대학가 3개 카페 순환 <strong>새벽 02:00 연장 스터디존</strong></p>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-5 px-5 align-top"><div class="text-2xl">☕</div><div class="font-editorial font-bold mt-1">카페 사장님</div><div class="text-[11px] text-pineMuted">Cafe Owner</div></td>
+                  <td class="py-5 px-5 align-top text-pineMuted space-y-2 text-[13px]">
+                    <p>오후 <strong class="text-pineInk">14:00~17:00</strong> 좌석 <strong class="text-pineInk">70%가 비어</strong> 고정비 대비 매출 하락</p>
+                    <p>학생 1명이 음료 1잔(10,000 MNT)만 시키고 4시간 점유해 피크 좌석 병목</p>
+                    <p>동절기 냉음료 메뉴 부진 및 비수기 현금흐름 불안정</p>
+                  </td>
+                  <td class="py-5 px-5 align-top bg-sageTint/40 space-y-2 text-[13px]">
+                    <p>✓ 비피크(14~17시) 유휴 좌석 점유율 <strong class="text-sageLeaf">+18.4%p 상승</strong> 및 고정 구독 배분 수익</p>
+                    <p>✓ <strong>차차르간 차 + 베이커리 번들</strong>로 1인당 평균 객단가 상승</p>
+                    <p>✓ 08:00~23:00 5단계 시간 분할로 인건비 최적화</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-1-1" class="subpage-view space-y-8">
+        <header class="space-y-4">
+          <span class="kicker">Page 1-1 · 5-Stage Daily Operation</span>
+          <h2 class="page-title text-3xl sm:text-[38px] text-pineInk">운영 시간(08:00~23:00)의 5단계 전략 분할과<br class="hidden sm:inline">시험기간 야간 02:00 순환 연장 운영</h2>
+          <p class="lede text-sm text-pineMuted leading-relaxed max-w-4xl">단일 카페의 24시간 영업은 야간 인건비·난방비 부담으로 비현실적입니다. 평상시에는 <strong>08:00~23:00을 5개 전략 슬롯</strong>으로 나누어 피크와 비피크 수요를 분리하고, 시험기간에는 대학가 3개 카페가 요일별로 순환하여 <strong>새벽 02:00까지 연장 운영</strong>합니다.</p>
+        </header>
+
+        <div class="card p-6">
+          <h3 class="font-editorial text-lg font-bold text-pineInk mb-5">① 평상시 5단계 타임라인 (08:00 – 23:00)</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div class="rounded-2xl p-4 bg-alabaster border border-sageBorder">
+              <div class="text-[11px] font-bold text-pineMuted">1단계 · 08:00–12:00</div>
+              <div class="h-1.5 rounded-full bg-[#9FB5AB] my-3"></div>
+              <h4 class="font-bold text-sm text-pineInk">오전 출근 &amp; 모닝 고객</h4>
+              <p class="text-xs text-pineMuted mt-1.5 leading-relaxed">출근길 직장인 및 오전 공강 대학생 중심의 테이크아웃·모닝 세트 운영</p>
+            </div>
+            <div class="rounded-2xl p-4 bg-[#FDF6F4] border border-seabuckthorn/30">
+              <div class="text-[11px] font-bold text-seabuckthorn">2단계 · 12:00–14:00</div>
+              <div class="h-1.5 rounded-full bg-seabuckthorn my-3"></div>
+              <h4 class="font-bold text-sm text-seabuckthorn">점심 피크</h4>
+              <p class="text-xs text-pineMuted mt-1.5 leading-relaxed">일반 고객 좌석 회전율 보호를 위해 패스 좌석 제한</p>
+            </div>
+            <div class="rounded-2xl p-4 bg-sageTint border-2 border-sageLeaf relative">
+              <span class="absolute -top-2.5 right-3 chip bg-sageLeaf text-white">핵심 공략</span>
+              <div class="text-[11px] font-bold text-sageLeaf">3단계 · 14:00–17:00</div>
+              <div class="h-1.5 rounded-full bg-sageLeaf my-3"></div>
+              <h4 class="font-bold text-sm text-sageLeaf">오후 비피크 집중 공략</h4>
+              <p class="text-xs text-pineInk mt-1.5 leading-relaxed">좌석 70%가 비는 시간. <strong>노마드 패스 학생 + 차차르간 차·베이커리 번들</strong> 매출 극대화</p>
+            </div>
+            <div class="rounded-2xl p-4 bg-[#FDF6F4] border border-seabuckthorn/30">
+              <div class="text-[11px] font-bold text-seabuckthorn">4단계 · 17:30–19:30</div>
+              <div class="h-1.5 rounded-full bg-seabuckthorn my-3"></div>
+              <h4 class="font-bold text-sm text-seabuckthorn">퇴근 피크</h4>
+              <p class="text-xs text-pineMuted mt-1.5 leading-relaxed">퇴근길 직장인·저녁 약속 고객 집중. 일반 고단가 고객 회전율 우선</p>
+            </div>
+            <div class="rounded-2xl p-4 bg-sageTint border-2 border-sageLeaf relative">
+              <span class="absolute -top-2.5 right-3 chip bg-taiga text-white">패스 시간</span>
+              <div class="text-[11px] font-bold text-pineInk">5단계 · 19:30–23:00</div>
+              <div class="h-1.5 rounded-full bg-taiga my-3"></div>
+              <h4 class="font-bold text-sm text-pineInk">야간 스터디</h4>
+              <p class="text-xs text-pineInk mt-1.5 leading-relaxed">과제·팀플·자격증 학습 집중. 전용 고속 Wi-Fi 및 콘센트 좌석 풀가동</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="font-editorial text-lg font-bold text-pineInk">시간대별 방문 수요(건) vs 평균 체류시간(분)</h3>
+              <p class="text-xs text-pineMuted mt-1">점심·퇴근 피크 집중 vs 오후(14~17시) 유휴 좌석 70% 공석 구간</p>
+            </div>
+            <span class="chip bg-seabuckthorn/15 text-seabuckthorn">비피크 유휴 좌석률 70%</span>
+          </div>
+          <div id="chartHourlyBottleneck" class="w-full h-[340px]"></div>
+        </div>
+
+        <div class="card p-6 space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="section-label" style="color:#D95D39">Exam Period Rotating Shift Network</span>
+              <h3 class="font-editorial text-lg font-bold text-pineInk mt-1">② 시험기간: 대학가 3개 카페 순환 02:00 연장 운영</h3>
+            </div>
+            <span class="chip bg-taiga text-white">24시간 대신 02:00 순환</span>
+          </div>
+          <p class="text-[13px] text-pineMuted leading-relaxed">개별 카페의 심야 적자를 방지하기 위해 3개 제휴 카페가 요일별 당번제로 <strong>23:00 이후 02:00까지 3시간 연장 영업</strong>을 분담합니다. 학생들은 앱에서 오늘의 당번 카페를 확인하고 좌석을 예약합니다.</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="rounded-2xl p-5 bg-alabaster border border-sageBorder">
+              <span class="chip bg-seabuckthorn/15 text-seabuckthorn">월 · 수 · 금</span>
+              <h4 class="font-bold text-sm text-pineInk mt-3">Caffé Bene — МУИС салбар</h4>
+              <p class="text-xs text-pineMuted mt-1.5">몽골국립대 정문 인근 · 대형 스터디 테이블 60석 &amp; 밤샘 비타민 차 세트</p>
+            </div>
+            <div class="rounded-2xl p-5 bg-alabaster border border-sageBorder">
+              <span class="chip bg-sageLeaf/15 text-sageLeaf">화 · 목</span>
+              <h4 class="font-bold text-sm text-pineInk mt-3">Ubean Coffee House</h4>
+              <p class="text-xs text-pineMuted mt-1.5">대학가 스터디존 · 160Mbps 전용 Wi-Fi 및 멀티탭 완비 좌석 야간 개방</p>
+            </div>
+            <div class="rounded-2xl p-5 bg-alabaster border border-sageBorder">
+              <span class="chip bg-steppeGold/20 text-[#8F631E]">토 · 일</span>
+              <h4 class="font-bold text-sm text-pineInk mt-3">Jack's Coffee — Зайсан салбар</h4>
+              <p class="text-xs text-pineMuted mt-1.5">자이승 거주 대학생 대상 주말 시험 대비 야간 집중 스터디 존</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-1-2" class="subpage-view space-y-8">
+        <header class="space-y-4">
+          <span class="kicker">Page 1-2 · Extreme Cold Impact</span>
+          <h2 class="page-title text-3xl sm:text-[38px] text-pineInk">영하 25°C 이하 혹한기, 방문은 유지되고<br class="hidden sm:inline">체류시간(+25.3분)과 객단가(+56.3%)가 동반 급증한다</h2>
+          <p class="lede text-sm text-pineMuted">원본 90건에서 결측·중복·이상치 6건을 정제한 <strong>84건 유효 데이터(총매출 1,800,750 MNT · 163개 품목)</strong>의 기온 구간별 검산 결과입니다.</p>
+        </header>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="card p-5"><div class="text-[11px] text-pineMuted font-semibold">평균 객단가</div><div class="stat-num text-2xl text-seabuckthorn mt-2">26,993</div><div class="text-[11px] text-sageLeaf font-bold mt-1.5">▲ 56.3% (MNT)</div></div>
+          <div class="card p-5"><div class="text-[11px] text-pineMuted font-semibold">평균 체류시간</div><div class="stat-num text-2xl text-pineInk mt-2">90.3분</div><div class="text-[11px] text-sageLeaf font-bold mt-1.5">▲ 25.3분</div></div>
+          <div class="card p-5"><div class="text-[11px] text-pineMuted font-semibold">혹한기 총매출</div><div class="stat-num text-2xl text-pineInk mt-2">971,750</div><div class="text-[11px] text-sageLeaf font-bold mt-1.5">▲ 17.2% (MNT)</div></div>
+          <div class="card p-5"><div class="text-[11px] text-pineMuted font-semibold">차+베이커리 비중</div><div class="stat-num text-2xl text-pineInk mt-2">52.74%</div><div class="text-[11px] text-sageLeaf font-bold mt-1.5">▲ 17.91%p</div></div>
+        </div>
+
+        <div class="card p-6"><div id="chartWeatherSales" class="w-full h-[330px]"></div></div>
+
+        <div class="card overflow-hidden">
+          <div class="px-6 py-4 border-b border-sageBorder font-editorial font-bold text-pineInk">기온 구간별 핵심 지표 비교 (84건 · MNT)</div>
+          <div class="overflow-x-auto">
+            <table class="ed w-full text-left border-collapse text-[13px]">
+              <thead><tr class="bg-sageTint text-pineInk"><th class="py-3 px-5">지표</th><th class="py-3 px-5">일반 겨울 (−24°C 이상)</th><th class="py-3 px-5">혹한기 (−25°C 이하)</th><th class="py-3 px-5">합계 / 변화폭</th></tr></thead>
+              <tbody class="divide-y divide-sageBorder">
+                <tr><td class="py-3 px-5 font-bold">거래 건수 (일평균)</td><td class="py-3 px-5">48건 (23일 · 2.09건)</td><td class="py-3 px-5">36건 (17일 · 2.12건)</td><td class="py-3 px-5 font-bold text-sageLeaf">총 84건 (방문 빈도 유지)</td></tr>
+                <tr><td class="py-3 px-5 font-bold">총매출액 (판매수량)</td><td class="py-3 px-5">829,000 MNT (75개)</td><td class="py-3 px-5 font-bold">971,750 MNT (88개)</td><td class="py-3 px-5 font-bold text-sageLeaf">1,800,750 MNT (+17.2%)</td></tr>
+                <tr><td class="py-3 px-5 font-bold">평균 객단가 (AOV)</td><td class="py-3 px-5">17,270 MNT</td><td class="py-3 px-5 font-bold text-seabuckthorn">26,993 MNT</td><td class="py-3 px-5 font-bold text-seabuckthorn">+9,723 MNT (+56.3%)</td></tr>
+                <tr><td class="py-3 px-5 font-bold">평균 체류시간</td><td class="py-3 px-5">65.0분</td><td class="py-3 px-5 font-bold">90.3분</td><td class="py-3 px-5 font-bold text-sageLeaf">+25.3분 (+38.9%)</td></tr>
+                <tr><td class="py-3 px-5 font-bold">차차르간 차+베이커리 비중</td><td class="py-3 px-5">288,750 MNT (34.83%)</td><td class="py-3 px-5 font-bold">512,500 MNT (52.74%)</td><td class="py-3 px-5 font-bold text-sageLeaf">801,250 MNT (+17.91%p)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card overflow-hidden">
+          <div class="px-6 py-4 border-b border-sageBorder flex flex-wrap items-center justify-between gap-2">
+            <span class="font-editorial font-bold text-pineInk">데이터 정제 검증 로그 (90건 → 84건)</span>
+            <span class="chip bg-sageLeaf/15 text-sageLeaf">오류 6건 제외 · 표기 5건 표준화</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="ed w-full text-left border-collapse text-[13px]">
+              <thead><tr class="bg-sageTint text-pineInk"><th class="py-3 px-5">구분</th><th class="py-3 px-5">건수</th><th class="py-3 px-5">해당 ID</th><th class="py-3 px-5">처리 내역</th></tr></thead>
+              <tbody class="divide-y divide-sageBorder">
+                <tr><td class="py-3 px-5 font-bold text-seabuckthorn">결측치 제외</td><td class="py-3 px-5">−3건</td><td class="py-3 px-5 font-mono text-xs">T080, T068, T029</td><td class="py-3 px-5 text-pineMuted">메뉴명(T080), 단가(T068), 수량(T029) 누락 행 제외</td></tr>
+                <tr><td class="py-3 px-5 font-bold text-seabuckthorn">중복 제외</td><td class="py-3 px-5">−2건</td><td class="py-3 px-5 font-mono text-xs">T084, T088</td><td class="py-3 px-5 text-pineMuted">T084(=T078), T088(=T009) 완전 중복 행 제거</td></tr>
+                <tr><td class="py-3 px-5 font-bold text-seabuckthorn">이상치 제외</td><td class="py-3 px-5">−1건</td><td class="py-3 px-5 font-mono text-xs">T074</td><td class="py-3 px-5 text-pineMuted">수량 150개 입력 오류 제외 (정상 범주 1~4개)</td></tr>
+                <tr><td class="py-3 px-5 font-bold text-[#8F631E]">포맷 통일</td><td class="py-3 px-5">5건 유지</td><td class="py-3 px-5 font-mono text-xs">T020, T045, T050, T075, T086</td><td class="py-3 px-5 text-pineMuted">단가 통화 기호 통일 2건, 날짜 YYYY-MM-DD 표준화 3건</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-2-1" class="subpage-view space-y-8">
+        <header class="space-y-4">
+          <span class="kicker">Page 2-1 · ABC Menu Pareto</span>
+          <h2 class="page-title text-3xl sm:text-[38px] text-pineInk">겨울 매출 기여 4.4%의 냉음료 2종(C등급)은 단종하고,<br class="hidden sm:inline">연계 구매력이 높은 허니케이크(B등급)는 유지한다</h2>
+        </header>
+        <div class="card p-6"><div id="chartAbcPareto" class="w-full h-[360px]"></div></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="card card-hover p-6 border-t-4 border-t-sageLeaf">
+            <span class="chip bg-sageLeaf/15 text-sageLeaf">A등급 주력 5종 · 88.1%</span>
+            <h4 class="font-editorial text-base font-bold text-pineInk mt-4">아메리카노 · 차차르간 차 중심</h4>
+            <p class="text-[13px] text-pineMuted mt-2 leading-relaxed">아메리카노(440,000 MNT, 24.4%), 차차르간 차(438,750 MNT, 24.4%), 카푸치노(16.0%), 크루아상(12.6%), 카페라떼(10.7%)가 전체 매출의 88.1%를 담당합니다.</p>
+          </div>
+          <div class="card card-hover p-6 border-t-4 border-t-steppeGold">
+            <span class="chip bg-steppeGold/20 text-[#8F631E]">B등급 전략 유지 · 7.5%</span>
+            <h4 class="font-editorial text-base font-bold text-pineInk mt-4">허니케이크 — 동시구매 2위 디저트</h4>
+            <p class="text-[13px] text-pineMuted mt-2 leading-relaxed">단품 매출은 135,000 MNT(7.5%)이나 아메리카노와 118회, 차차르간 차와 97회 동시구매되어 체류 고객 객단가를 끌어올립니다.</p>
+          </div>
+          <div class="card card-hover p-6 border-t-4 border-t-seabuckthorn">
+            <span class="chip bg-seabuckthorn/15 text-seabuckthorn">C등급 겨울 단종 · 4.4%</span>
+            <h4 class="font-editorial text-base font-bold text-seabuckthorn mt-4">아이스 스무디 · 콜드 레모네이드</h4>
+            <p class="text-[13px] text-pineMuted mt-2 leading-relaxed">아이스 스무디(55,000 MNT, 3.0%)와 콜드 레모네이드(25,000 MNT, 1.4%)를 동절기 단종하고 <strong>핫 과일차·생강 레몬차</strong>로 개편합니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-2-2" class="subpage-view space-y-8">
+        <header class="space-y-4">
+          <span class="kicker">Page 2-2 · VOC Sentiment &amp; Irony</span>
+          <h2 class="page-title text-3xl sm:text-[38px] text-pineInk">리뷰 60건 문맥 분석: 별점 5점 뒤에 숨겨진<br class="hidden sm:inline">반어법 불만 4건 발굴</h2>
+        </header>
+        <div class="card p-6">
+          <div class="flex h-3 rounded-full overflow-hidden mb-6">
+            <div class="bg-sageLeaf" style="width:43.4%"></div>
+            <div class="bg-seabuckthorn" style="width:30%"></div>
+            <div class="bg-[#9FB5AB]" style="width:13.3%"></div>
+            <div class="bg-steppeGold" style="width:13.3%"></div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-5">
+            <div><div class="flex items-center gap-2 text-xs font-bold text-sageLeaf"><span class="w-2.5 h-2.5 rounded-full bg-sageLeaf"></span>긍정</div><div class="stat-num text-2xl mt-2">26건 <span class="text-sm text-pineMuted">43.4%</span></div><div class="text-[11px] text-pineMuted mt-1">평균 별점 4.65점</div></div>
+            <div><div class="flex items-center gap-2 text-xs font-bold text-seabuckthorn"><span class="w-2.5 h-2.5 rounded-full bg-seabuckthorn"></span>부정 (일반 14 + 반어법 4)</div><div class="stat-num text-2xl mt-2 text-seabuckthorn">18건 <span class="text-sm text-pineMuted">30.0%</span></div><div class="text-[11px] text-pineMuted mt-1">보정 평점 3.57 → 3.30점</div></div>
+            <div><div class="flex items-center gap-2 text-xs font-bold text-pineMuted"><span class="w-2.5 h-2.5 rounded-full bg-[#9FB5AB]"></span>중립</div><div class="stat-num text-2xl mt-2">8건 <span class="text-sm text-pineMuted">13.3%</span></div><div class="text-[11px] text-pineMuted mt-1">평균 별점 3.00점</div></div>
+            <div><div class="flex items-center gap-2 text-xs font-bold text-[#8F631E]"><span class="w-2.5 h-2.5 rounded-full bg-steppeGold"></span>혼합</div><div class="stat-num text-2xl mt-2">8건 <span class="text-sm text-pineMuted">13.3%</span></div><div class="text-[11px] text-pineMuted mt-1">평균 별점 3.50점</div></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="card card-hover p-6 space-y-3">
+            <div class="flex justify-between items-center text-xs"><strong class="text-seabuckthorn">R040 · 자이승</strong><span class="chip bg-steppeGold/20 text-[#8F631E]">★5 → 실제 1점</span></div>
+            <p class="font-editorial text-[15px] text-pineInk leading-relaxed">“인터넷 속도가 너무 느려서 인내심 훈련을 시켜줍니다. 영상 강의가 계속 버벅여요”</p>
+            <p class="text-xs text-sageLeaf font-semibold pt-3 border-t border-sageBorder">→ 패스 구독자 전용 120Mbps+ 대역폭 분리 Wi-Fi 인증 필터 (4-1)</p>
+          </div>
+          <div class="card card-hover p-6 space-y-3">
+            <div class="flex justify-between items-center text-xs"><strong class="text-seabuckthorn">R053 · 수흐바타르 광장</strong><span class="chip bg-steppeGold/20 text-[#8F631E]">★5 → 실제 1점</span></div>
+            <p class="font-editorial text-[15px] text-pineInk leading-relaxed">“콘센트 구경하기 정말 힘든 곳이네요. 충전은 포기하세요 ^^”</p>
+            <p class="text-xs text-sageLeaf font-semibold pt-3 border-t border-sageBorder">→ 좌석 대비 콘센트 보유율 공개 및 멀티탭 구비 제휴점 우선 추천</p>
+          </div>
+          <div class="card card-hover p-6 space-y-3">
+            <div class="flex justify-between items-center text-xs"><strong class="text-seabuckthorn">R021 · 수흐바타르 광장</strong><span class="chip bg-steppeGold/20 text-[#8F631E]">★5 → 실제 1점</span></div>
+            <p class="font-editorial text-[15px] text-pineInk leading-relaxed">“구독 해지 버튼 숨바꼭질 게임 정말 재미있어요. 아직도 못 찾았습니다”</p>
+            <p class="text-xs text-sageLeaf font-semibold pt-3 border-t border-sageBorder">→ 3초 즉시 해지 원클릭 기능 구현 (4-2)</p>
+          </div>
+          <div class="card card-hover p-6 space-y-3">
+            <div class="flex justify-between items-center text-xs"><strong class="text-seabuckthorn">R030 · 수흐바타르 광장</strong><span class="chip bg-steppeGold/20 text-[#8F631E]">★5 → 실제 1점</span></div>
+            <p class="font-editorial text-[15px] text-pineInk leading-relaxed">“문 열릴 때마다 시베리아 체험 가능합니다. 패딩 필수예요”</p>
+            <p class="text-xs text-sageLeaf font-semibold pt-3 border-t border-sageBorder">→ 출입문 방풍 설비 및 실내 난방 쾌적도 등급 인증</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-3-1" class="subpage-view space-y-8">
+        <header class="space-y-4">
+          <span class="kicker">Page 3-1 · Co-Purchase Hubs</span>
+          <h2 class="page-title text-3xl sm:text-[38px] text-pineInk">동시구매의 69.1%를 연결하는 두 허브<br class="hidden sm:inline">(차차르간 차·아메리카노) 기반 3대 번들 설계</h2>
+        </header>
+        <div class="card p-6"><div id="chartNetworkBundles" class="w-full h-[320px]"></div></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="card card-hover p-6 ring-2 ring-sageLeaf">
+            <div class="flex items-center justify-between"><span class="stat-num text-3xl text-sageLeaf">1위</span><span class="chip bg-sageLeaf text-white">142회</span></div>
+            <h4 class="font-editorial text-lg font-bold text-pineInk mt-4">겨울 비타민 세트</h4>
+            <p class="text-xs font-semibold text-pineMuted">차차르간 차 + 크루아상</p>
+            <p class="text-[13px] text-pineMuted mt-3 leading-relaxed">노마드 패스(월 120,000 MNT) 핵심 혜택 번들로 제공해 단품 주문 습관을 고단가 세트로 전환합니다.</p>
+          </div>
+          <div class="card card-hover p-6">
+            <div class="flex items-center justify-between"><span class="stat-num text-3xl text-steppeGold">2위</span><span class="chip bg-steppeGold/20 text-[#8F631E]">118회</span></div>
+            <h4 class="font-editorial text-lg font-bold text-pineInk mt-4">오후 스터디 세트</h4>
+            <p class="text-xs font-semibold text-pineMuted">아메리카노 + 허니케이크</p>
+            <p class="text-[13px] text-pineMuted mt-3 leading-relaxed">14:00~17:00 비피크 전용 할인 세트로 70% 공석을 채우고 허니케이크 회전율을 높입니다.</p>
+          </div>
+          <div class="card card-hover p-6">
+            <div class="flex items-center justify-between"><span class="stat-num text-3xl text-seabuckthorn">3위</span><span class="chip bg-seabuckthorn/15 text-seabuckthorn">97회</span></div>
+            <h4 class="font-editorial text-lg font-bold text-pineInk mt-4">혹한기 특선 세트</h4>
+            <p class="text-xs font-semibold text-pineMuted">차차르간 차 + 허니케이크</p>
+            <p class="text-[13px] text-pineMuted mt-3 leading-relaxed">−25°C 이하 한파 예보 시 앱 푸시 쿠폰으로 발송해 90분 이상 체류 고객의 추가 주문을 유도합니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-3-2" class="subpage-view space-y-8">
+        <header class="space-y-4">
+          <span class="kicker">Page 3-2 · Owner What-If Simulator</span>
+          <h2 class="page-title text-3xl sm:text-[38px] text-pineInk">비피크 할인율과 좌석 회전율에 따른<br class="hidden sm:inline">월 추가 매출 · 순이익 시뮬레이터</h2>
+        </header>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-5 card p-6 space-y-6">
+            <div>
+              <span class="section-label">월 프로모션 예산 (MNT)</span>
+              <div class="grid grid-cols-3 gap-2 mt-3">
+                <button onclick="setSimBudget(1200000)" class="sim-budget-btn py-2 rounded-xl text-xs font-bold" data-budget="1200000">1.2M</button>
+                <button onclick="setSimBudget(2500000)" class="sim-budget-btn py-2 rounded-xl text-xs font-bold" data-budget="2500000">2.5M</button>
+                <button onclick="setSimBudget(4500000)" class="sim-budget-btn py-2 rounded-xl text-xs font-bold" data-budget="4500000">4.5M</button>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between items-baseline text-xs font-bold mb-3"><span>비피크(14~17시) 번들 할인율</span><span id="simDiscountVal" class="stat-num text-xl text-seabuckthorn">15%</span></div>
+              <input type="range" id="simDiscountSlider" min="0" max="30" step="1" value="15" oninput="updateSimulator()" />
+            </div>
+            <div>
+              <div class="flex justify-between items-baseline text-xs font-bold mb-3"><span>일일 좌석 회전율 증가폭</span><span id="simTurnoverVal" class="stat-num text-xl text-sageLeaf">+1.5회</span></div>
+              <input type="range" id="simTurnoverSlider" min="0.5" max="3.0" step="0.1" value="1.5" oninput="updateSimulator()" />
+            </div>
+            <p class="text-[11px] text-pineMuted bg-alabaster p-3 rounded-xl border border-sageBorder leading-relaxed">※ 기준 월매출 18,007,500 MNT(환산), 가격탄력성 1.4, 변동원가율 35% 가정 하의 의사결정 시뮬레이션입니다.</p>
+          </div>
+          <div class="lg:col-span-7 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="card p-5"><span class="text-[11px] text-pineMuted font-semibold block">예상 월 추가 매출</span><span id="simAddRevenue" class="stat-num text-xl text-pineInk mt-3 block">—</span></div>
+              <div class="card p-5"><span class="text-[11px] text-pineMuted font-semibold block">예상 월 순이익 증감</span><span id="simNetProfit" class="stat-num text-xl text-sageLeaf mt-3 block">—</span></div>
+              <div class="card p-5"><span class="text-[11px] text-pineMuted font-semibold block">손익분기 한계 할인율</span><span id="simBreakEven" class="stat-num text-xl text-seabuckthorn mt-3 block">—</span></div>
+            </div>
+            <div class="card p-5"><div id="chartSimulatorLive" class="w-full h-[260px]"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-4-1" class="subpage-view space-y-8">
+        <header class="space-y-4">
+          <span class="kicker">Page 4-1 · Ulaanbaatar Cafe Map</span>
+          <h2 class="page-title text-3xl sm:text-[38px] text-pineInk">울란바토르 실존 제휴 카페 6곳과<br class="hidden sm:inline">Wi-Fi · 콘센트 · 패스 시간대 탐색</h2>
+          <p class="lede text-sm text-pineMuted max-w-4xl">Wi-Fi 속도 저하(R040)와 콘센트 부족(R053) 불만을 해결하기 위해 6개 매장의 위치와 학습 인프라를 지도에서 확인하고 Google Maps로 이동할 수 있습니다.</p>
+        </header>
+        <div class="card p-5 space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap gap-1.5 p-1 bg-sageTint rounded-2xl">
+              <button onclick="setAppDistrict('all')" class="app-dist-btn px-3.5 py-2 rounded-xl text-xs font-bold" data-appdist="all">전체 (6)</button>
+              <button onclick="setAppDistrict('대학가')" class="app-dist-btn px-3.5 py-2 rounded-xl text-xs font-bold" data-appdist="대학가">대학가 МУИС</button>
+              <button onclick="setAppDistrict('수흐바타르 광장')" class="app-dist-btn px-3.5 py-2 rounded-xl text-xs font-bold" data-appdist="수흐바타르 광장">수흐바타르</button>
+              <button onclick="setAppDistrict('자이승')" class="app-dist-btn px-3.5 py-2 rounded-xl text-xs font-bold" data-appdist="자이승">자이승</button>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="toggleComfortFilter('wifi')" id="flt-wifi" class="flt-btn">⚡ Wi-Fi 120Mbps+</button>
+              <button onclick="toggleComfortFilter('outlets')" id="flt-outlets" class="flt-btn">🔌 콘센트 25구+</button>
+              <button onclick="toggleComfortFilter('warmth')" id="flt-warmth" class="flt-btn">🔥 난방 4.7★+</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-6 space-y-2.5">
+              <div id="ubAppMap" class="w-full h-[480px] rounded-2xl border border-sageBorder z-10"></div>
+              <div class="flex flex-wrap items-center justify-between text-[11px] text-pineMuted px-1 gap-2">
+                <div class="flex items-center gap-3">
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-sageLeaf inline-block"></span>대학가</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-seabuckthorn inline-block"></span>수흐바타르</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-taiga inline-block"></span>자이승</span>
+                </div>
+                <span>핀 클릭 시 상세 팝업</span>
+              </div>
+            </div>
+            <div id="realCafeCardsContainer" class="lg:col-span-6 space-y-3 max-h-[510px] overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-4-2" class="subpage-view space-y-8">
+        <header class="space-y-4">
+          <span class="kicker">Page 4-2 · Student Savings Calculator</span>
+          <h2 class="page-title text-3xl sm:text-[38px] text-pineInk">대학생 월 커피 지출 절약 계산기와<br class="hidden sm:inline">원클릭 3초 즉시 해지 UX</h2>
+        </header>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-7 card p-6 space-y-6">
+            <span class="section-label">Savings Calculator · 노마드 패스 월 120,000 MNT</span>
+            <div>
+              <div class="flex justify-between items-baseline text-xs font-bold mb-3"><span>주당 카페 공부 방문 횟수</span><span id="calcDaysVal" class="text-seabuckthorn">주 8회</span></div>
+              <input type="range" id="calcDaysSlider" min="1" max="14" step="1" value="8" oninput="updateSavingsCalc()" />
+            </div>
+            <div>
+              <div class="flex justify-between items-baseline text-xs font-bold mb-3"><span>1회 평균 주문액 (MNT)</span><span id="calcPriceVal" class="text-pineInk">10,000 MNT</span></div>
+              <input type="range" id="calcPriceSlider" min="5000" max="15000" step="500" value="10000" oninput="updateSavingsCalc()" />
+            </div>
+            <div class="rounded-2xl bg-taiga text-white p-6 grain">
+              <div class="grid grid-cols-3 gap-3 text-center pb-5 border-b border-white/10">
+                <div><div class="text-[10px] text-sageText">주당 지출</div><div id="calcWeeklySpend" class="font-bold text-sm mt-1">—</div></div>
+                <div><div class="text-[10px] text-sageText">월 지출 (4.3주)</div><div id="calcRegularSpend" class="font-bold text-sm mt-1 text-seabuckthorn">—</div></div>
+                <div><div class="text-[10px] text-sageText">패스 구독료</div><div class="font-bold text-sm mt-1 text-steppeGold">120,000 MNT</div></div>
+              </div>
+              <div class="pt-5 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+                <span class="text-xs text-sageText font-bold">월 예상 순절감액</span>
+                <span id="calcNetSave" class="stat-num text-3xl sm:text-4xl">—</span>
+              </div>
+              <p id="calcBreakEvenText" class="text-[11px] text-sageText mt-3"></p>
+            </div>
+          </div>
+          <div class="lg:col-span-5 card p-6 flex flex-col justify-between gap-6">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="section-label" style="color:#D95D39">R021 불만 해결</span>
+                <span id="subStatusBadge" class="chip bg-sageLeaf/15 text-sageLeaf">구독 이용 중</span>
+              </div>
+              <h3 class="font-editorial text-xl font-bold text-pineInk">3초 즉시 해지 시스템</h3>
+              <p class="text-[13px] text-pineMuted leading-relaxed">“해지 버튼 숨바꼭질 게임(R021)” 불만을 해결하기 위해 해지 메뉴를 최상단에 공개했습니다. 확인 1회만으로 즉시 해지되며 남은 기간 혜택은 유지됩니다.</p>
+              <div class="flex items-center gap-2 pt-2">
+                <span class="w-7 h-7 rounded-full bg-sageTint flex items-center justify-center text-xs font-bold">1</span><span class="text-xs text-pineMuted">버튼 클릭</span>
+                <span class="flex-1 h-px bg-sageBorder"></span>
+                <span class="w-7 h-7 rounded-full bg-sageTint flex items-center justify-center text-xs font-bold">2</span><span class="text-xs text-pineMuted">확인</span>
+                <span class="flex-1 h-px bg-sageBorder"></span>
+                <span class="w-7 h-7 rounded-full bg-seabuckthorn text-white flex items-center justify-center text-xs font-bold">✓</span>
+              </div>
+            </div>
+            <div id="subActionArea"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-5-2" class="subpage-view space-y-8">
+        <header class="space-y-4">
+          <span class="kicker">Page 5-1 · Glossary &amp; Limitations</span>
+          <h2 class="page-title text-3xl sm:text-[38px] text-pineInk">핵심 용어 풀이 및 연구 한계</h2>
+        </header>
+        <div class="card p-6 border-l-4 border-l-steppeGold">
+          <strong class="font-editorial text-pineInk block mb-2">학술적 투명성 및 연구 한계 고지</strong>
+          <p class="text-[13px] text-pineMuted leading-relaxed">본 프로젝트의 6개 카페(Caffé Bene МУИС, Ubean Coffee House, ROC Caffeine Bar, Tom N Toms Coffee, The Coffee Bean &amp; Tea Leaf 자이승, Jack's Coffee 자이승)의 명칭·좌표·Google Maps 링크는 울란바토르 매장 정보를 참고했으며, 내부 POS 거래(84건)·리뷰(60건)·동시구매(30쌍) 수치는 청주대학교 경영학과 「인공지능과경영」 과제의 가설 검증을 위해 현지 MNT 시세(1잔 10,000 MNT)를 반영하여 설계된 시뮬레이션 데이터입니다.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="card card-hover p-6"><span class="section-label">Term 01</span><h4 class="font-editorial font-bold text-pineInk mt-2">5단계 시간 분할 오퍼레이션</h4><p class="text-[13px] text-pineMuted mt-2 leading-relaxed">08:00~23:00 운영 시간을 피크(12~14시, 17:30~19:30)와 비피크(14~17시, 19:30~23시)로 나누어 좌석 회전율과 구독 점유율을 최적화하는 운영 전략.</p></div>
+          <div class="card card-hover p-6"><span class="section-label">Term 02</span><h4 class="font-editorial font-bold text-pineInk mt-2">시험기간 02:00 순환 스위치</h4><p class="text-[13px] text-pineMuted mt-2 leading-relaxed">24시간 영업 적자를 피하기 위해 대학가 3개 제휴 카페가 요일별로 순환하며 새벽 02:00까지 3시간 연장 운영하는 네트워크.</p></div>
+          <div class="card card-hover p-6"><span class="section-label">Term 03</span><h4 class="font-editorial font-bold text-pineInk mt-2">전용 서브채널 Wi-Fi</h4><p class="text-[13px] text-pineMuted mt-2 leading-relaxed">다중 접속으로 인한 속도 저하를 해결하기 위해 노마드 패스 구독자에게 별도 대역폭(120Mbps+)을 할당하는 전용 무선망.</p></div>
+          <div class="card card-hover p-6"><span class="section-label">Term 04</span><h4 class="font-editorial font-bold text-pineInk mt-2">객단가 (AOV · MNT)</h4><p class="text-[13px] text-pineMuted mt-2 leading-relaxed">총매출액 ÷ 유효 거래건수 (일반 겨울 17,270 MNT → 혹한기 26,993 MNT, +56.3%).</p></div>
+          <div class="card card-hover p-6 md:col-span-2"><span class="section-label">Term 05</span><h4 class="font-editorial font-bold text-pineInk mt-2">반어법 보정 별점</h4><p class="text-[13px] text-pineMuted mt-2 leading-relaxed">표면 별점 5점이나 불만을 비꼰 4건(R021, R030, R040, R053)을 실제 1점으로 보정해 평균 3.57 → 3.30점 산출.</p></div>
+        </div>
+      </section>
+
+      <div id="pager" class="mt-12 pt-6 border-t border-sageBorder grid grid-cols-2 gap-4"></div>
+    </div>
+
+    <footer class="border-t border-sageBorder bg-white px-6 lg:px-10 py-5 text-xs text-pineMuted">
+      <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+        <span>© 2026 노마드빈 UB (Nomad Bean UB) · 청주대학교 경영학과 「인공지능과경영」 · 발표자 온다르마</span>
+        <span>11개 분석 페이지 · 울란바토르 카페 &amp; MNT 경제성 모델</span>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<div id="cancelModal" class="fixed inset-0 z-50 bg-black/60 hidden items-center justify-center p-4">
+  <div class="bg-white rounded-3xl max-w-md w-full p-7 shadow-2xl space-y-4">
+    <div class="flex items-center justify-between">
+      <span class="kicker">3초 즉시 해지 확인</span>
+      <button onclick="closeCancelModal()" class="w-8 h-8 rounded-full bg-sageTint text-pineInk font-bold">✕</button>
+    </div>
+    <h4 class="font-editorial text-xl font-bold text-pineInk">노마드 패스(월 120,000 MNT) 구독을 해지하시겠습니까?</h4>
+    <p class="text-[13px] text-pineMuted leading-relaxed">설문이나 상담원 연결 없이 <strong>지금 즉시 해지</strong>되며, 잔여 이용일(18일)까지는 모든 제휴 카페 혜택을 계속 이용하실 수 있습니다.</p>
+    <div class="flex gap-2 pt-2">
+      <button onclick="closeCancelModal()" class="flex-1 py-3 rounded-xl bg-sageTint text-pineInk font-bold text-xs">유지하기</button>
+      <button onclick="confirmCancellation()" class="flex-1 py-3 rounded-xl bg-seabuckthorn text-white font-bold text-xs">지금 즉시 해지</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastBanner" class="fixed bottom-5 right-5 z-50 bg-taiga text-white px-4 py-3 rounded-xl shadow-lg border border-sageLeaf text-xs font-semibold hidden items-center gap-2">
+  <span class="text-seabuckthorn font-bold">✓</span><span id="toastMessage"></span>
+</div>
+
+<script>
+const chapters = [
+  { key: '0', roman: '0', title: '연구 배경 및 핵심 결론', pages: [
+    { id: '0-1', label: '연구 출처 및 양면 문제 정의' },
+    { id: '0-2', label: '핵심 결론 및 Before·After' } ] },
+  { key: '1', roman: 'I', title: '시간대·기온별 수요 분석', pages: [
+    { id: '1-1', label: '5단계 시간대 & 시험기간 02시' },
+    { id: '1-2', label: '혹한기 객단가 & 데이터 검증' } ] },
+  { key: '2', roman: 'II', title: '메뉴 · VOC 사각지대', pages: [
+    { id: '2-1', label: 'ABC 파레토 & 동절기 메뉴' },
+    { id: '2-2', label: 'VOC 60건 & 반어법 탐지' } ] },
+  { key: '3', roman: 'III', title: '번들 · 수익 시뮬레이터', pages: [
+    { id: '3-1', label: '동시구매 허브 & 3대 번들' },
+    { id: '3-2', label: '사장님 What-If 시뮬레이터' } ] },
+  { key: '4', roman: 'IV', title: '노마드 패스 앱', pages: [
+    { id: '4-1', label: '울란바토르 지도 & 인프라' },
+    { id: '4-2', label: '절약 계산기 & 3초 해지' } ] },
+  { key: '5', roman: 'V', title: '용어 · 데이터 출처 · 한계', pages: [
+    { id: '5-2', label: '용어 풀이 & 연구 한계' } ] }
+];
+const pageOrder = chapters.flatMap(c => c.pages.map(p => ({ ...p, chapter: c })));
+const visited = new Set();
+let currentPage = '0-1';
+
+const realUbCafes = [
+  { num: 1, id: 'c1', name: 'Caffé Bene — МУИС салбар (카페베네 국립대점)', shortName: 'Caffé Bene МУИС', district: '대학가', address: 'Baga Toiruu, Sukhbaatar District (몽골국립대학교 정문 인근)', lat: 47.9218, lng: 106.9186, wifiMbps: 135, outletCount: 28, warmth: 4.7, passWindow: '14:00~17:00 / 19:30~23:00 (시험기간 월·수·금 02:00)', q: 'Caffe Bene NUM Ulaanbaatar', pinColor: '#2E6F56' },
+  { num: 2, id: 'c2', name: 'Ubean Coffee House (유빈 커피하우스)', shortName: 'Ubean Coffee House', district: '대학가', address: 'University Street, Sukhbaatar District (대학가 스터디존)', lat: 47.9204, lng: 106.9162, wifiMbps: 160, outletCount: 32, warmth: 4.5, passWindow: '14:00~17:00 / 19:30~23:00 (시험기간 화·목 02:00)', q: 'Ubean Coffee House Ulaanbaatar', pinColor: '#2E6F56' },
+  { num: 3, id: 'c3', name: 'ROC Caffeine Bar — Төв салбар (록 카페인바 본점)', shortName: 'ROC Caffeine Bar', district: '수흐바타르 광장', address: 'Seoul Street / Peace Ave 인근, Sukhbaatar District', lat: 47.9175, lng: 106.9177, wifiMbps: 150, outletCount: 16, warmth: 4.6, passWindow: '14:00~17:00 (비피크 전용)', q: 'ROC Caffeine Bar Ulaanbaatar', pinColor: '#D95D39' },
+  { num: 4, id: 'c4', name: 'Tom N Toms Coffee — Энхтайваны өргөн чөлөө (탐앤탐스 평화대로점)', shortName: 'Tom N Toms Coffee', district: '수흐바타르 광장', address: 'Peace Avenue, Sukhbaatar Square 인근', lat: 47.9163, lng: 106.9135, wifiMbps: 115, outletCount: 40, warmth: 4.8, passWindow: '14:00~17:00 / 19:30~23:00', q: 'Tom N Toms Coffee Ulaanbaatar', pinColor: '#D95D39' },
+  { num: 5, id: 'c5', name: 'The Coffee Bean & Tea Leaf — Зайсан (커피빈 자이승점)', shortName: 'The Coffee Bean Зайсан', district: '자이승', address: 'Zaisan Hill / Zaisan Square, Khan-Uul District', lat: 47.8872, lng: 106.9154, wifiMbps: 140, outletCount: 26, warmth: 4.9, passWindow: '14:00~17:00 / 19:30~23:00', q: 'The Coffee Bean Tea Leaf Zaisan Ulaanbaatar', pinColor: '#132A22' },
+  { num: 6, id: 'c6', name: "Jack's Coffee — Зайсан салбар (잭스커피 자이승점)", shortName: "Jack's Coffee Зайсан", district: '자이승', address: 'Zaisan Street, Khan-Uul District', lat: 47.8895, lng: 106.9128, wifiMbps: 125, outletCount: 22, warmth: 4.7, passWindow: '14:00~17:00 / 19:30~23:00 (시험기간 토·일 02:00)', q: "Jack's Coffee Zaisan Ulaanbaatar", pinColor: '#132A22' }
+].map(c => ({ ...c, mapsUrl: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(c.q), infoUrl: 'https://www.google.com/search?q=' + encodeURIComponent(c.q) }));
+
+let simBudget = 2500000;
+let appDistrictFilter = 'all';
+let activeComfortFilters = { wifi: false, outlets: false, warmth: false };
+let ubAppMap = null;
+let appMarkersMap = {};
+
+function renderSidebar() {
+  document.getElementById('sidebarNav').innerHTML = chapters.map(c => `
+    <div>
+      <div class="px-2 mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-sageText/60">
+        <span class="text-seabuckthorn font-editorial mr-1">${c.roman}.</span>${c.title}
+      </div>
+      <div class="space-y-0.5">
+        ${c.pages.map(p => {
+          const idx = pageOrder.findIndex(x => x.id === p.id) + 1;
+          return `<button onclick="openSubPage('${p.id}')" class="side-page-btn" data-page="${p.id}"><span class="num">${String(idx).padStart(2, '0')}</span><span class="leading-snug">${p.label}</span></button>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function openSubPage(pageId) {
+  const idx = pageOrder.findIndex(p => p.id === pageId);
+  if (idx < 0) return;
+  currentPage = pageId;
+  visited.add(pageId);
+  const info = pageOrder[idx];
+
+  document.querySelectorAll('.subpage-view').forEach(el => el.classList.remove('active-subpage'));
+  document.getElementById('page-' + pageId).classList.add('active-subpage');
+
+  document.querySelectorAll('.side-page-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.page === pageId);
+    btn.classList.toggle('visited', visited.has(btn.dataset.page));
+  });
+
+  document.getElementById('topChapterBadge').textContent = `Chapter ${info.chapter.roman} · ${info.chapter.title}`;
+  document.getElementById('topPageTitle').textContent = info.label;
+  document.getElementById('topSubTabsContainer').innerHTML = info.chapter.pages.length > 1 ? info.chapter.pages.map(t => `
+    <button onclick="openSubPage('${t.id}')" class="px-3 py-1.5 rounded-lg text-[11px] font-bold transition ${t.id === pageId ? 'bg-taiga text-white' : 'bg-sageTint text-pineInk hover:bg-sageBorder'}">${t.label}</button>`).join('') : '';
+
+  const pct = Math.round(((idx + 1) / pageOrder.length) * 100);
+  document.getElementById('topProgressBar').style.width = pct + '%';
+  document.getElementById('sideProgressBar').style.width = Math.round((visited.size / pageOrder.length) * 100) + '%';
+  document.getElementById('sideProgressText').textContent = `${visited.size} / ${pageOrder.length}`;
+
+  const prev = pageOrder[idx - 1];
+  const next = pageOrder[idx + 1];
+  document.getElementById('pager').innerHTML = `
+    <div>${prev ? `<button onclick="openSubPage('${prev.id}')" class="group w-full text-left card card-hover p-4"><span class="text-[11px] text-pineMuted font-semibold">← 이전</span><span class="block font-editorial font-bold text-sm text-pineInk mt-1 group-hover:text-seabuckthorn transition">${prev.label}</span></button>` : ''}</div>
+    <div>${next ? `<button onclick="openSubPage('${next.id}')" class="group w-full text-right rounded-[20px] p-4 bg-taiga hover:bg-taigaLight transition"><span class="text-[11px] text-sageText font-semibold">다음 →</span><span class="block font-editorial font-bold text-sm text-white mt-1">${next.label}</span></button>` : `<button onclick="openSubPage('0-1')" class="w-full text-right rounded-[20px] p-4 bg-seabuckthorn hover:bg-[#C24E2C] transition"><span class="text-[11px] text-white/80 font-semibold">처음으로 ↺</span><span class="block font-editorial font-bold text-sm text-white mt-1">연구 출처 및 양면 문제 정의</span></button>`}</div>`;
+
+  closeMobileSidebar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => {
+    resizeVisibleCharts();
+    if (pageId === '4-1') initAndRefreshAppMap();
+  }, 120);
+}
+
+function stepPage(dir) {
+  const idx = pageOrder.findIndex(p => p.id === currentPage);
+  const target = pageOrder[idx + dir];
+  if (target) openSubPage(target.id);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight') stepPage(1);
+  if (e.key === 'ArrowLeft') stepPage(-1);
+  if (e.key === 'Escape') closeCancelModal();
+});
+
+const sidebar = document.getElementById('sidebar');
+const mobileOverlay = document.getElementById('mobileOverlay');
+document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+  sidebar.classList.remove('-translate-x-full');
+  mobileOverlay.classList.remove('hidden');
+});
+function closeMobileSidebar() {
+  if (window.innerWidth < 1024) sidebar.classList.add('-translate-x-full');
+  mobileOverlay.classList.add('hidden');
+}
+mobileOverlay.addEventListener('click', closeMobileSidebar);
+
+function setRangeFill(el) {
+  const p = ((el.value - el.min) / (el.max - el.min)) * 100;
+  el.style.setProperty('--p', p + '%');
+}
+
+function createMarkerIcon(cafe) {
+  return L.divIcon({ className: 'bg-transparent border-0', html: `<div class="custom-cafe-marker" style="background-color:${cafe.pinColor};">${cafe.num}</div>`, iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -18] });
+}
+
+function buildPopupHtml(cafe) {
+  return `<div style="min-width:240px;font-family:Pretendard,sans-serif;padding:2px;">
+    <div style="font-size:10px;font-weight:800;color:#D95D39;letter-spacing:.08em;">#${cafe.num} · ${cafe.district}</div>
+    <div style="font-weight:800;font-size:13px;color:#11221C;margin-top:3px;line-height:1.35;">${cafe.name}</div>
+    <div style="font-size:11px;color:#4E635B;margin-top:5px;">⚡ <strong>${cafe.wifiMbps}Mbps</strong> · 🔌 <strong>${cafe.outletCount}구</strong> · 🔥 ${cafe.warmth}★</div>
+    <div style="font-size:11px;color:#2E6F56;font-weight:700;margin-top:3px;">패스: ${cafe.passWindow}</div>
+    <a href="${cafe.mapsUrl}" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;margin-top:8px;padding:7px 10px;background:#132A22;color:#FFFFFF !important;border-radius:8px;text-decoration:none;font-size:11px;font-weight:700;">📍 Google Maps 위치·리뷰</a>
+  </div>`;
+}
+
+function initAndRefreshAppMap() {
+  if (!ubAppMap) {
+    ubAppMap = L.map('ubAppMap', { scrollWheelZoom: false }).setView([47.908, 106.916], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(ubAppMap);
+    realUbCafes.forEach(cafe => {
+      appMarkersMap[cafe.id] = L.marker([cafe.lat, cafe.lng], { icon: createMarkerIcon(cafe) }).addTo(ubAppMap).bindPopup(buildPopupHtml(cafe));
+    });
+  }
+  ubAppMap.invalidateSize(true);
+  renderAppCafesAndMarkers();
+}
+
+function setAppDistrict(dist) {
+  appDistrictFilter = dist;
+  styleDistrictButtons();
+  renderAppCafesAndMarkers();
+}
+
+function styleDistrictButtons() {
+  document.querySelectorAll('.app-dist-btn').forEach(btn => {
+    btn.className = 'app-dist-btn px-3.5 py-2 rounded-xl text-xs font-bold transition ' + (btn.dataset.appdist === appDistrictFilter ? 'bg-taiga text-white shadow-sm' : 'text-pineInk hover:bg-white');
+  });
+}
+
+function styleFilterButtons() {
+  Object.keys(activeComfortFilters).forEach(key => {
+    const on = activeComfortFilters[key];
+    document.getElementById('flt-' + key).className = 'flt-btn px-3 py-1.5 rounded-full text-xs font-bold transition border ' + (on ? 'bg-seabuckthorn text-white border-seabuckthorn shadow-sm' : 'bg-white text-pineInk border-sageBorder hover:border-seabuckthorn');
+  });
+}
+
+function toggleComfortFilter(key) {
+  activeComfortFilters[key] = !activeComfortFilters[key];
+  styleFilterButtons();
+  renderAppCafesAndMarkers();
+}
+
+function getFilteredCafes() {
+  return realUbCafes.filter(c => {
+    if (appDistrictFilter !== 'all' && c.district !== appDistrictFilter) return false;
+    if (activeComfortFilters.wifi && c.wifiMbps < 120) return false;
+    if (activeComfortFilters.outlets && c.outletCount < 25) return false;
+    if (activeComfortFilters.warmth && c.warmth < 4.7) return false;
+    return true;
+  });
+}
+
+function renderAppCafesAndMarkers() {
+  const filtered = getFilteredCafes();
+  const container = document.getElementById('realCafeCardsContainer');
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="p-8 text-center text-xs text-pineMuted bg-alabaster rounded-2xl border border-dashed border-sageBorder">조건을 모두 만족하는 매장이 없습니다. 필터를 일부 해제해 보세요.</div>`;
+  } else {
+    container.innerHTML = filtered.map(c => `
+      <div class="p-4 rounded-2xl bg-white border border-sageBorder hover:border-seabuckthorn hover:shadow-md transition space-y-3">
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-9 h-9 rounded-xl text-white font-bold text-sm flex items-center justify-center" style="background:${c.pinColor}">${c.num}</span>
+          <div class="min-w-0">
+            <h4 class="font-bold text-sm text-pineInk leading-snug">${c.name}</h4>
+            <p class="text-[11px] text-pineMuted mt-0.5">📍 ${c.address}</p>
+            <p class="text-[11px] font-bold text-sageLeaf mt-1">${c.passWindow}</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+          <div class="bg-alabaster rounded-xl py-2"><span class="text-pineMuted block">Wi-Fi</span><strong>${c.wifiMbps} Mbps</strong></div>
+          <div class="bg-alabaster rounded-xl py-2"><span class="text-pineMuted block">콘센트</span><strong>${c.outletCount}구</strong></div>
+          <div class="bg-alabaster rounded-xl py-2"><span class="text-pineMuted block">난방</span><strong class="text-sageLeaf">${c.warmth.toFixed(1)}★</strong></div>
+        </div>
+        <div class="flex items-center justify-between gap-2 text-[11px]">
+          <button onclick="focusAppMapCafe('${c.id}')" class="px-3 py-1.5 rounded-lg bg-sageTint hover:bg-sageBorder text-pineInk font-bold transition">🗺️ 지도에서 보기</button>
+          <div class="flex gap-1.5">
+            <a href="${c.mapsUrl}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg bg-taiga hover:bg-sageLeaf text-white font-bold transition">Google Maps</a>
+            <a href="${c.infoUrl}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg border border-sageBorder hover:bg-sageTint text-pineInk font-bold transition">정보</a>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+  if (ubAppMap && filtered.length > 0) {
+    ubAppMap.invalidateSize(true);
+    ubAppMap.fitBounds(L.latLngBounds(filtered.map(c => [c.lat, c.lng])), { padding: [40, 40], maxZoom: 15 });
+  }
+}
+
+function focusAppMapCafe(cafeId) {
+  const cafe = realUbCafes.find(c => c.id === cafeId);
+  if (!cafe || !ubAppMap) return;
+  ubAppMap.flyTo([cafe.lat, cafe.lng], 16, { duration: 0.75 });
+  appMarkersMap[cafe.id].openPopup();
+  showToast(`${cafe.shortName} 위치로 이동했습니다.`);
+}
+
+function setSimBudget(amount) {
+  simBudget = amount;
+  document.querySelectorAll('.sim-budget-btn').forEach(btn => {
+    btn.className = 'sim-budget-btn py-2 rounded-xl text-xs font-bold transition ' + (Number(btn.dataset.budget) === amount ? 'bg-taiga text-white shadow-sm' : 'bg-sageTint text-pineInk hover:bg-sageBorder');
+  });
+  updateSimulator();
+}
+
+function updateSimulator() {
+  const dEl = document.getElementById('simDiscountSlider');
+  const tEl = document.getElementById('simTurnoverSlider');
+  setRangeFill(dEl); setRangeFill(tEl);
+  const discount = Number(dEl.value);
+  const turnover = Number(tEl.value);
+  document.getElementById('simDiscountVal').textContent = `${discount}%`;
+  document.getElementById('simTurnoverVal').textContent = `+${turnover.toFixed(1)}회`;
+
+  const baseRevenue = 18007500;
+  const elasticity = 1.4;
+  const costRatio = 0.35;
+  const demandMultiplier = 1 + (elasticity * (discount / 100)) + (turnover * 0.14);
+  const budgetBoost = 1 + (simBudget / 25000000);
+  const projectedRevenue = Math.round(baseRevenue * demandMultiplier * (1 - discount / 100) * budgetBoost);
+  const addRevenue = projectedRevenue - baseRevenue;
+  const baseMargin = baseRevenue * (1 - costRatio);
+  const projectedMargin = projectedRevenue - (baseRevenue * demandMultiplier * budgetBoost * costRatio) - (simBudget * 0.25);
+  const netProfitChange = Math.round(projectedMargin - baseMargin);
+  const breakEvenDiscount = (24.5 - (simBudget / 2500000) * 2.1).toFixed(1);
+
+  document.getElementById('simAddRevenue').textContent = `${addRevenue >= 0 ? '+' : ''}${addRevenue.toLocaleString()} MNT`;
+  const profitEl = document.getElementById('simNetProfit');
+  profitEl.textContent = `${netProfitChange >= 0 ? '+' : ''}${netProfitChange.toLocaleString()} MNT`;
+  profitEl.className = 'stat-num text-xl mt-3 block ' + (netProfitChange >= 0 ? 'text-sageLeaf' : 'text-seabuckthorn');
+  document.getElementById('simBreakEven').textContent = `${breakEvenDiscount}%`;
+
+  Plotly.react('chartSimulatorLive', [{
+    x: ['기존 월매출', '예상 월매출', '순이익 증감'],
+    y: [Math.round(baseRevenue / 10000), Math.round(projectedRevenue / 10000), Math.round(netProfitChange / 10000)],
+    type: 'bar',
+    marker: { color: ['#9FB5AB', '#132A22', netProfitChange >= 0 ? '#2E6F56' : '#D95D39'] },
+    text: [`${Math.round(baseRevenue / 10000).toLocaleString()}만`, `${Math.round(projectedRevenue / 10000).toLocaleString()}만`, `${netProfitChange >= 0 ? '+' : ''}${Math.round(netProfitChange / 10000).toLocaleString()}만`],
+    textposition: 'auto',
+    hovertemplate: '%{x}: %{y}만 MNT<extra></extra>'
+  }], { ...baseLayout(), margin: { t: 20, r: 20, b: 35, l: 55 }, bargap: 0.45, yaxis: { title: '만 MNT', gridcolor: '#E6ECE9', zeroline: false } }, { displayModeBar: false, responsive: true });
+}
+
+function updateSavingsCalc() {
+  const vEl = document.getElementById('calcDaysSlider');
+  const pEl = document.getElementById('calcPriceSlider');
+  setRangeFill(vEl); setRangeFill(pEl);
+  const visitsPerWeek = Number(vEl.value);
+  const avgPrice = Number(pEl.value);
+  const weeklySpend = visitsPerWeek * avgPrice;
+  const monthlyVisits = +(visitsPerWeek * 4.3).toFixed(1);
+  const regularSpend = Math.round(monthlyVisits * avgPrice);
+  const passFee = 120000;
+  const netSave = regularSpend - passFee;
+
+  document.getElementById('calcDaysVal').textContent = `주 ${visitsPerWeek}회 · 월 ${monthlyVisits}회`;
+  document.getElementById('calcPriceVal').textContent = `${avgPrice.toLocaleString()} MNT`;
+  document.getElementById('calcWeeklySpend').textContent = `${weeklySpend.toLocaleString()} MNT`;
+  document.getElementById('calcRegularSpend').textContent = `${regularSpend.toLocaleString()} MNT`;
+  const saveEl = document.getElementById('calcNetSave');
+  if (netSave >= 0) {
+    saveEl.textContent = `+${netSave.toLocaleString()} MNT`;
+    saveEl.className = 'stat-num text-3xl sm:text-4xl text-steppeGold';
+  } else {
+    saveEl.textContent = `−${Math.abs(netSave).toLocaleString()} MNT`;
+    saveEl.className = 'stat-num text-3xl sm:text-4xl text-seabuckthorn';
+  }
+  document.getElementById('calcBreakEvenText').textContent = `손익분기점: 월 ${(passFee / avgPrice).toFixed(1)}회 (주 약 ${(passFee / (avgPrice * 4.3)).toFixed(1)}회) 이상 방문 시 구독 이득 발생`;
+}
+
+function renderSubAction(active) {
+  const badge = document.getElementById('subStatusBadge');
+  if (active) {
+    badge.textContent = '구독 이용 중';
+    badge.className = 'chip bg-sageLeaf/15 text-sageLeaf';
+    document.getElementById('subActionArea').innerHTML = `<button onclick="openCancelModal()" class="w-full py-3.5 rounded-xl bg-[#FDF6F4] hover:bg-seabuckthorn hover:text-white text-seabuckthorn border border-seabuckthorn/40 text-xs font-bold transition">구독 즉시 해지하기 (3초 완료)</button>`;
+  } else {
+    badge.textContent = '해지 완료 · 잔여 18일';
+    badge.className = 'chip bg-steppeGold/20 text-[#8F631E]';
+    document.getElementById('subActionArea').innerHTML = `<div class="p-4 rounded-xl bg-sageTint border border-sageBorder text-xs text-sageLeaf font-semibold flex items-center justify-between"><span>✓ 2.1초 만에 해지 완료</span><button onclick="renderSubAction(true)" class="underline text-pineInk">재구독</button></div>`;
+  }
+}
+function openCancelModal() { const m = document.getElementById('cancelModal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+function closeCancelModal() { const m = document.getElementById('cancelModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+function confirmCancellation() { closeCancelModal(); renderSubAction(false); showToast('구독 해지가 3초 이내에 완료되었습니다.'); }
+
+function baseLayout() {
+  return { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { family: 'Pretendard', color: '#11221C', size: 12 }, margin: { t: 40, r: 55, b: 50, l: 65 }, hoverlabel: { bgcolor: '#132A22', font: { color: '#FFFFFF', family: 'Pretendard' } } };
+}
+
+function initAllCharts() {
+  const cfg = { displayModeBar: false, responsive: true };
+  const slots = ['08–12시 오전', '12–14시 점심피크', '14–17시 비피크', '17:30–19:30 퇴근피크', '19:30–23시 야간'];
+  Plotly.newPlot('chartHourlyBottleneck', [
+    { x: slots, y: [18, 26, 8, 22, 10], name: '방문 건수 (건)', type: 'bar', marker: { color: ['#9FB5AB', '#D95D39', '#2E6F56', '#D95D39', '#132A22'] }, text: ['18건', '26건', '8건 (70% 공석)', '22건', '10건'], textposition: 'auto' },
+    { x: slots, y: [52, 85, 95, 58, 92], name: '평균 체류시간 (분)', type: 'scatter', mode: 'lines+markers', yaxis: 'y2', line: { color: '#C9933B', width: 3, shape: 'spline' }, marker: { size: 9, color: '#C9933B', line: { color: '#FFFFFF', width: 2 } } }
+  ], { ...baseLayout(), bargap: 0.35, yaxis: { title: '방문 건수', gridcolor: '#E6ECE9', range: [0, 32], zeroline: false }, yaxis2: { title: '체류시간 (분)', overlaying: 'y', side: 'right', range: [0, 120], showgrid: false }, legend: { orientation: 'h', y: 1.15 } }, cfg);
+
+  Plotly.newPlot('chartWeatherSales', [
+    { x: ['일반 겨울 (−24°C 이상)', '혹한기 (−25°C 이하)'], y: [829000, 971750], name: '총매출 (MNT)', type: 'bar', width: 0.45, marker: { color: ['#9FB5AB', '#132A22'] }, text: ['829,000', '971,750 (+17.2%)'], textposition: 'auto' },
+    { x: ['일반 겨울 (−24°C 이상)', '혹한기 (−25°C 이하)'], y: [17270, 26993], name: '평균 객단가 (MNT)', type: 'scatter', mode: 'lines+markers+text', yaxis: 'y2', line: { color: '#D95D39', width: 3 }, marker: { size: 11, color: '#D95D39', line: { color: '#FFFFFF', width: 2 } }, text: ['17,270', '26,993 (+56.3%)'], textposition: 'top center', textfont: { color: '#D95D39' } }
+  ], { ...baseLayout(), yaxis: { title: '총매출 (MNT)', gridcolor: '#E6ECE9', range: [0, 1150000], zeroline: false }, yaxis2: { title: '객단가 (MNT)', overlaying: 'y', side: 'right', range: [0, 34000], showgrid: false }, legend: { orientation: 'h', y: 1.15 } }, cfg);
+
+  const menus = ['아메리카노', '차차르간 차', '카푸치노', '크루아상', '카페라떼', '허니케이크', '아이스 스무디', '콜드 레모네이드'];
+  const revenues = [440000, 438750, 287500, 227500, 192000, 135000, 55000, 25000];
+  Plotly.newPlot('chartAbcPareto', [
+    { x: menus, y: revenues, name: '메뉴별 매출 (MNT)', type: 'bar', marker: { color: ['#2E6F56', '#2E6F56', '#2E6F56', '#2E6F56', '#2E6F56', '#C9933B', '#D95D39', '#D95D39'] }, text: revenues.map(v => `${(v / 1000).toFixed(0)}k`), textposition: 'auto' },
+    { x: menus, y: [24.4, 48.8, 64.8, 77.4, 88.1, 95.6, 98.6, 100.0], name: '누적 비중 (%)', type: 'scatter', mode: 'lines+markers', yaxis: 'y2', line: { color: '#132A22', width: 3 }, marker: { size: 8, color: '#132A22', line: { color: '#FFFFFF', width: 2 } } }
+  ], { ...baseLayout(), bargap: 0.3, yaxis: { title: '매출액 (MNT)', gridcolor: '#E6ECE9', zeroline: false }, yaxis2: { title: '누적 비중 (%)', overlaying: 'y', side: 'right', range: [0, 110], showgrid: false }, legend: { orientation: 'h', y: 1.15 }, shapes: [{ type: 'line', xref: 'paper', x0: 0, x1: 1, yref: 'y2', y0: 80, y1: 80, line: { color: '#C9933B', width: 1.5, dash: 'dot' } }] }, cfg);
+
+  Plotly.newPlot('chartNetworkBundles', [{
+    y: ['아메리카노 + 샌드위치', '차차르간 차 + 마들렌', '아메리카노 + 크루아상', '차차르간 차 + 허니케이크', '아메리카노 + 허니케이크', '차차르간 차 + 크루아상'],
+    x: [71, 76, 89, 97, 118, 142], type: 'bar', orientation: 'h',
+    marker: { color: ['#C8D5CF', '#C8D5CF', '#C8D5CF', '#D95D39', '#C9933B', '#2E6F56'] },
+    text: ['71회', '76회', '89회', '97회 · 3위', '118회 · 2위', '142회 · 1위'], textposition: 'auto'
+  }], { ...baseLayout(), margin: { t: 15, r: 30, b: 40, l: 170 }, bargap: 0.3, xaxis: { title: '동시구매 횟수 (회)', gridcolor: '#E6ECE9', range: [0, 160], zeroline: false } }, cfg);
+}
+
+function resizeVisibleCharts() {
+  ['chartHourlyBottleneck', 'chartWeatherSales', 'chartAbcPareto', 'chartNetworkBundles', 'chartSimulatorLive'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.offsetParent !== null) Plotly.Plots.resize(el);
+  });
+}
+
+function showToast(msg) {
+  const banner = document.getElementById('toastBanner');
+  document.getElementById('toastMessage').textContent = msg;
+  banner.classList.remove('hidden');
+  banner.classList.add('flex');
+  clearTimeout(window.__toastT);
+  window.__toastT = setTimeout(() => { banner.classList.add('hidden'); banner.classList.remove('flex'); }, 2800);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  renderSidebar();
+  styleDistrictButtons();
+  styleFilterButtons();
+  renderAppCafesAndMarkers();
+  updateSavingsCalc();
+  initAllCharts();
+  setSimBudget(2500000);
+  renderSubAction(true);
+  openSubPage('0-1');
+});
+
+window.addEventListener('resize', () => {
+  resizeVisibleCharts();
+  if (ubAppMap && currentPage === '4-1') ubAppMap.invalidateSize(true);
+});
+</script>
+</body>
+</html>
